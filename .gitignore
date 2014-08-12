@@ -1,0 +1,8 @@
+.DS_Store
+Makefile*
+*.sln
+*.vcproj
+*.xcodeproj
+build
+CVS/
+
