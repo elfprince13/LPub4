@@ -5,4 +5,8 @@ Makefile*
 *.xcodeproj
 build
 CVS/
-
+moc/
+objs/
+Info.plist
+ui_preferences.h
+rcc/
