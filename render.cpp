@@ -40,6 +40,10 @@
 #include "lpub_preferences.h"
 #include "paths.h"
 
+#ifndef __APPLE__
+#include <windows.h>
+#endif
+
 Render *renderer;
 
 LDGLite ldglite;
@@ -54,6 +58,40 @@ L3P l3p;
 static double pi = 4*atan(1.0);
 // the default camera distance for real size
 static float LduDistance = 10.0/tan(0.005*pi/180);
+
+QString fixupDirname(const QString &dirNameIn) {
+#ifdef __APPLE__
+	return dirNameIn;
+#else
+	long     length = 0;
+    TCHAR*   buffer = NULL;
+	LPCWSTR dirNameWin = dirNameIn.utf16();
+// First obtain the size needed by passing NULL and 0.
+
+    length = GetShortPathName(dirNameWin, NULL, 0);
+    if (length == 0){
+		qDebug() << "Couldn't get length of short path name, trying long path name\n";
+		return dirNameIn;
+	}
+// Dynamically allocate the correct size 
+// (terminating null char was included in length)
+
+    buffer = new TCHAR[length];
+
+// Now simply call again using same long path.
+
+    length = GetShortPathName(dirNameWin, buffer, length);
+    if (length == 0){
+		qDebug() << "Couldn't get short path name, trying long path name\n";
+		return dirNameIn;
+	}
+
+	QString dirNameOut = QString::fromWCharArray(buffer);
+    
+    delete [] buffer;
+	return dirNameOut;
+#endif
+}
 
 QString const Render::getRenderer()
 {
@@ -243,12 +281,12 @@ int L3P::renderCsi(
 	
 	QString cg = QString("-cg0.0,0.0,%1").arg(cd);
 	QString car = QString("-car%1").arg(ar);
-	QString ldd = QString("-ldd%1").arg(Preferences::ldrawPath);
+	QString ldd = QString("-ldd%1").arg(fixupDirname(QDir::toNativeSeparators(Preferences::ldrawPath)));
 	arguments << CA;
 	arguments << cg;
 	arguments << "-ld";
 	if(hasLGEO){
-		QString lgd = QString("-lgd%1").arg(Preferences::lgeoPath);
+		QString lgd = QString("-lgd%1").arg(fixupDirname(QDir::toNativeSeparators(Preferences::lgeoPath)));
 		arguments << "-lgeo";
 		arguments << lgd;
 	}
@@ -263,8 +301,8 @@ int L3P::renderCsi(
 		}
 	}
 	
-	arguments << QDir::toNativeSeparators(ldrName);
-	arguments << QDir::toNativeSeparators(povName);
+	arguments << fixupDirname(QDir::toNativeSeparators(ldrName));
+	arguments << fixupDirname(QDir::toNativeSeparators(povName));
 	
 	QProcess l3p;
 	QStringList env = QProcess::systemEnvironment();
@@ -287,8 +325,8 @@ int L3P::renderCsi(
 	}
 	
 	QStringList povArguments;
-	QString O =QString("+O%1").arg(QDir::toNativeSeparators(pngName));
-	QString I = QString("+I%1").arg(QDir::toNativeSeparators(povName));
+	QString O =QString("+O%1").arg(fixupDirname(QDir::toNativeSeparators(pngName)));
+	QString I = QString("+I%1").arg(fixupDirname(QDir::toNativeSeparators(povName)));
 	QString W = QString("+W%1").arg(width);
 	QString H = QString("+H%1").arg(height);
 	
@@ -298,8 +336,10 @@ int L3P::renderCsi(
 	povArguments << H;
 	povArguments << USE_ALPHA;
 	if(hasLGEO){
-		QString povLibraries = QString("+L%1 +L%2").arg(Preferences::lgeoPath + "/lg").arg(Preferences::lgeoPath + "/ar");
-		povArguments << povLibraries;
+		QString lgeoLg = QString("+L%1").arg(fixupDirname(QDir::toNativeSeparators(Preferences::lgeoPath + "/lg")));
+		QString lgeoAr = QString("+L%2").arg(fixupDirname(QDir::toNativeSeparators(Preferences::lgeoPath + "/ar")));
+		povArguments << lgeoLg;
+		povArguments << lgeoAr;
 	}
 #ifndef __APPLE__
 	povArguments << "/EXIT";
@@ -360,7 +400,7 @@ int L3P::renderPli(const QString &ldrName,
 	.arg(cd);
 	
 	QString car = QString("-car%1").arg(ar);
-	QString ldd = QString("-ldd%1").arg(Preferences::ldrawPath);
+	QString ldd = QString("-ldd%1").arg(fixupDirname(QDir::toNativeSeparators(Preferences::ldrawPath)));
 	QStringList arguments;
 	bool hasLGEO = Preferences::lgeoPath != "";
 	
@@ -368,7 +408,7 @@ int L3P::renderPli(const QString &ldrName,
 	arguments << cg;
 	arguments << "-ld";
 	if(hasLGEO){
-		QString lgd = QString("-lgd%1").arg(Preferences::lgeoPath);
+		QString lgd = QString("-lgd%1").arg(fixupDirname(QDir::toNativeSeparators(Preferences::lgeoPath)));
 		arguments << "-lgeo";
 		arguments << lgd;
 	}
@@ -384,8 +424,8 @@ int L3P::renderPli(const QString &ldrName,
 		}
 	}
 	
-	arguments << QDir::toNativeSeparators(ldrName);
-	arguments << QDir::toNativeSeparators(povName);
+	arguments << fixupDirname(QDir::toNativeSeparators(ldrName));
+	arguments << fixupDirname(QDir::toNativeSeparators(povName));
 	
 	QProcess    l3p;
 	QStringList env = QProcess::systemEnvironment();
@@ -408,8 +448,8 @@ int L3P::renderPli(const QString &ldrName,
 	}
 	
 	QStringList povArguments;
-	QString O =QString("+O%1").arg(QDir::toNativeSeparators(pngName));
-	QString I = QString("+I%1").arg(QDir::toNativeSeparators(povName));
+	QString O =QString("+O%1").arg(fixupDirname(QDir::toNativeSeparators(pngName)));
+	QString I = QString("+I%1").arg(fixupDirname(QDir::toNativeSeparators(povName)));
 	QString W = QString("+W%1").arg(width);
 	QString H = QString("+H%1").arg(height);
 	
@@ -419,8 +459,10 @@ int L3P::renderPli(const QString &ldrName,
 	povArguments << H;
 	povArguments << USE_ALPHA;
 	if(hasLGEO){
-		QString povLibraries = QString("+L%1 +L%2").arg(Preferences::lgeoPath + "/lg").arg(Preferences::lgeoPath + "/ar");
-		povArguments << povLibraries;
+		QString lgeoLg = QString("+L%1").arg(fixupDirname(QDir::toNativeSeparators(Preferences::lgeoPath + "/lg")));
+		QString lgeoAr = QString("+L%2").arg(fixupDirname(QDir::toNativeSeparators(Preferences::lgeoPath + "/ar")));
+		povArguments << lgeoLg;
+		povArguments << lgeoAr;
 	}
 #ifndef __APPLE__
 	povArguments << "/EXIT";
