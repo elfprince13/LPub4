@@ -46,6 +46,7 @@ LDGLite ldglite;
 LDView  ldview;
 L3P l3p;
 
+
 //#define LduDistance 5729.57
 #define CA "-ca0.01"
 #define USE_ALPHA "+UA"
@@ -271,7 +272,7 @@ int L3P::renderCsi(
 	l3p.setWorkingDirectory(QDir::currentPath()+"/"+Paths::tmpDir);
 	l3p.setStandardErrorFile(QDir::currentPath() + "/stderr");
 	l3p.setStandardOutputFile(QDir::currentPath() + "/stdout");
-	printf("%s\n",qPrintable(Preferences::l3pExe + " " + arguments.join(" ")));
+	qDebug() << qPrintable(Preferences::l3pExe + " " + arguments.join(" ")) << "\n";
 	l3p.start(Preferences::l3pExe,arguments);
 	if ( ! l3p.waitForFinished(6*60*1000)) {
 		if (l3p.exitCode() != 0) {
@@ -286,8 +287,8 @@ int L3P::renderCsi(
 	}
 	
 	QStringList povArguments;
-	QString O =QString("+O\"%1\"").arg(QDir::toNativeSeparators(pngName));
-	QString I = QString("+I\"%1\"").arg(QDir::toNativeSeparators(povName));
+	QString O =QString("+O%1").arg(QDir::toNativeSeparators(pngName));
+	QString I = QString("+I%1").arg(QDir::toNativeSeparators(povName));
 	QString W = QString("+W%1").arg(width);
 	QString H = QString("+H%1").arg(height);
 	
@@ -300,6 +301,9 @@ int L3P::renderCsi(
 		QString povLibraries = QString("+L%1 +L%2").arg(Preferences::lgeoPath + "/lg").arg(Preferences::lgeoPath + "/ar");
 		povArguments << povLibraries;
 	}
+#ifndef __APPLE__
+	povArguments << "/EXIT";
+#endif
 	
 	list = meta.LPub.assem.povrayParms.value().split("\\s+");
 	for (int i = 0; i < list.size(); i++) {
@@ -314,8 +318,8 @@ int L3P::renderCsi(
 	povray.setWorkingDirectory(QDir::currentPath()+"/"+Paths::tmpDir);
 	povray.setStandardErrorFile(QDir::currentPath() + "/stderr-povray");
 	povray.setStandardOutputFile(QDir::currentPath() + "/stdout-povray");
-	printf("%s\n",qPrintable("/opt/local/bin/povray " + povArguments.join(" ")));
-	povray.start("/opt/local/bin/povray",povArguments);
+	qDebug() << qPrintable(Preferences::povrayExe + " " + povArguments.join(" ")) << "\n";
+	povray.start(Preferences::povrayExe,povArguments);
 	if ( ! povray.waitForFinished(6*60*1000)) {
 		if (povray.exitCode() != 0) {
 			QByteArray status = povray.readAll();
@@ -389,7 +393,7 @@ int L3P::renderPli(const QString &ldrName,
 	l3p.setWorkingDirectory(QDir::currentPath());
 	l3p.setStandardErrorFile(QDir::currentPath() + "/stderr");
 	l3p.setStandardOutputFile(QDir::currentPath() + "/stdout");
-	printf("%s\n",qPrintable(Preferences::l3pExe + " " + arguments.join(" ")));
+	qDebug() << qPrintable(Preferences::l3pExe + " " + arguments.join(" ")) << "\n";
 	l3p.start(Preferences::l3pExe,arguments);
 	if (! l3p.waitForFinished()) {
 		if (l3p.exitCode()) {
@@ -404,8 +408,8 @@ int L3P::renderPli(const QString &ldrName,
 	}
 	
 	QStringList povArguments;
-	QString O =QString("+O\"%1\"").arg(QDir::toNativeSeparators(pngName));
-	QString I = QString("+I\"%1\"").arg(QDir::toNativeSeparators(povName));
+	QString O =QString("+O%1").arg(QDir::toNativeSeparators(pngName));
+	QString I = QString("+I%1").arg(QDir::toNativeSeparators(povName));
 	QString W = QString("+W%1").arg(width);
 	QString H = QString("+H%1").arg(height);
 	
@@ -418,6 +422,9 @@ int L3P::renderPli(const QString &ldrName,
 		QString povLibraries = QString("+L%1 +L%2").arg(Preferences::lgeoPath + "/lg").arg(Preferences::lgeoPath + "/ar");
 		povArguments << povLibraries;
 	}
+#ifndef __APPLE__
+	povArguments << "/EXIT";
+#endif
 	
 	list = meta.LPub.assem.povrayParms.value().split("\\s+");
 	for (int i = 0; i < list.size(); i++) {
@@ -432,8 +439,8 @@ int L3P::renderPli(const QString &ldrName,
 	povray.setWorkingDirectory(QDir::currentPath()+"/"+Paths::tmpDir);
 	povray.setStandardErrorFile(QDir::currentPath() + "/stderr-povray");
 	povray.setStandardOutputFile(QDir::currentPath() + "/stdout-povray");
-	printf("%s\n",qPrintable("/opt/local/bin/povray " + povArguments.join(" ")));
-	povray.start("/opt/local/bin/povray",povArguments);
+	qDebug() << qPrintable(Preferences::povrayExe + " " + povArguments.join(" ")) << "\n";
+	povray.start(Preferences::povrayExe,povArguments);
 	if ( ! povray.waitForFinished(6*60*1000)) {
 		if (povray.exitCode() != 0) {
 			QByteArray status = povray.readAll();
