@@ -1,7 +1,10 @@
 .DS_Store
 Makefile*
 *.sln
-*.vcproj
+*.vc*proj*
+*.*sdf
+*.suo
+*.pdb
 *.xcodeproj
 build
 CVS/
@@ -10,3 +13,5 @@ objs/
 Info.plist
 ui_preferences.h
 rcc/
+debug/
+release/
